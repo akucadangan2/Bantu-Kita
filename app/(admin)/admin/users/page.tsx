@@ -74,8 +74,8 @@ export default async function AdminUsersPage() {
                 </td>
                 <td className="p-4 text-slate-600">{p.phone || "-"}</td>
                 <td className="p-4">
-                  <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${ROLE_STYLE[p.role]}`}>
-                    {ROLE_LABEL[p.role]}
+                  <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${ROLE_STYLE[p.role as UserRole]}`}>
+                    {ROLE_LABEL[p.role as UserRole]}
                   </span>
                 </td>
                 <td className="p-4">
