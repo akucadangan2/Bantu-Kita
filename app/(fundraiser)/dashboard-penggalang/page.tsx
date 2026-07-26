@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Badge } from "@/components/ui/Badge";
@@ -23,20 +24,27 @@ export default async function DashboardFundraiserPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Dashboard Penggalang Dana</h1>
-          <p className="mt-1 text-sm text-slate-500">Kelola campaign yang kamu buat.</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-primary">Dashboard Penggalang Dana</h1>
+        <p className="mt-1 text-sm text-slate-500">Kelola campaign yang kamu buat.</p>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
         <Link
           href="/galang-dana"
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
         >
           + Campaign Baru
         </Link>
+        <Link
+          href="/dashboard-penggalang/pencairan-dana"
+          className="flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+        >
+          <Wallet className="h-4 w-4" /> Tarik Dana
+        </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatCard label="Total Campaign" value={String(list.length)} />
         <StatCard label="Total Terkumpul" value={formatRupiah(totalTerkumpul)} />
         <StatCard label="Sedang Aktif" value={String(totalAktif)} />
