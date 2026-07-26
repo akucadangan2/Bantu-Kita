@@ -6,35 +6,39 @@ export function Footer() {
   const secondWord = rest.join(" ");
 
   return (
-    <footer className="bg-primary text-slate-300 mt-12">
-      <div className="mx-auto max-w-6xl px-4 py-10 grid gap-8 sm:grid-cols-3 text-sm">
-        <div>
-          <p className="font-extrabold text-lg mb-2">
+    <footer className="bg-primary text-slate-300 mt-8 sm:mt-12">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:py-10 text-sm">
+        <div className="mb-6 sm:mb-0">
+          <p className="font-extrabold text-lg mb-1.5">
             <span className="text-white">{firstWord}</span>
             {secondWord && <span className="text-secondary"> {secondWord}</span>}
           </p>
-          <p className="text-slate-400">{APP_TAGLINE}</p>
+          <p className="text-slate-400 text-xs sm:text-sm">{APP_TAGLINE}</p>
         </div>
 
-        <div>
-          <p className="font-semibold text-white mb-2">Program</p>
-          <ul className="space-y-1">
-            <li><Link href="/donasi" className="hover:text-secondary transition-colors">Donasi</Link></li>
-            <li><Link href="/zakat" className="hover:text-secondary transition-colors">Zakat</Link></li>
-            <li><Link href="/wakaf" className="hover:text-secondary transition-colors">Wakaf</Link></li>
-            <li><Link href="/kegiatan" className="hover:text-secondary transition-colors">Kegiatan</Link></li>
-          </ul>
-        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-8 sm:mt-8">
+          <div className="hidden sm:block" />
 
-        <div>
-          <p className="font-semibold text-white mb-2">Bantuan</p>
-          <ul className="space-y-1">
-            <li><Link href="/bantuan" className="hover:text-secondary transition-colors">Pusat Bantuan</Link></li>
-            <li><Link href="/tentang" className="hover:text-secondary transition-colors">Tentang Kami</Link></li>
-          </ul>
+          <div>
+            <p className="font-semibold text-white mb-2 text-xs sm:text-sm">Program</p>
+            <ul className="space-y-1.5 text-xs sm:text-sm">
+              <li><Link href="/donasi" className="hover:text-secondary transition-colors">Donasi</Link></li>
+              <li><Link href="/zakat" className="hover:text-secondary transition-colors">Zakat</Link></li>
+              <li><Link href="/wakaf" className="hover:text-secondary transition-colors">Wakaf</Link></li>
+              <li><Link href="/kegiatan" className="hover:text-secondary transition-colors">Kegiatan</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="font-semibold text-white mb-2 text-xs sm:text-sm">Bantuan</p>
+            <ul className="space-y-1.5 text-xs sm:text-sm">
+              <li><Link href="/bantuan" className="hover:text-secondary transition-colors">Pusat Bantuan</Link></li>
+              <li><Link href="/tentang" className="hover:text-secondary transition-colors">Tentang Kami</Link></li>
+            </ul>
+          </div>
         </div>
       </div>
-      <p className="text-center text-xs text-slate-500 border-t border-white/10 pt-4 pb-6">
+      <p className="text-center text-[11px] sm:text-xs text-slate-500 border-t border-white/10 pt-3 sm:pt-4 pb-4 sm:pb-6">
         © {new Date().getFullYear()} {APP_NAME}. Seluruh hak cipta dilindungi.
       </p>
     </footer>
