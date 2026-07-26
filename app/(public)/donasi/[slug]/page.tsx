@@ -99,7 +99,7 @@ export default async function DonasiDetailPage({
                     <p className="font-medium text-slate-700">
                       {d.is_anonymous ? "Hamba Allah" : d.donor_name}
                     </p>
-                    {d.message && <p className="text-slate-500 mt-0.5">"{d.message}"</p>}
+                    {d.message && <p className="text-slate-500 mt-0.5">&quot;{d.message}&quot;</p>}
                   </div>
                   <span className="font-semibold text-secondary-dark whitespace-nowrap">
                     {formatRupiah(d.amount)}
