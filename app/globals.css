@@ -11,3 +11,13 @@ body {
   color: rgb(var(--foreground));
   background: rgb(var(--background));
 }
+
+/* Sembunyiin scrollbar bawaan browser khusus buat carousel horizontal,
+   tetap bisa discroll/swipe seperti biasa, cuma bar abu-abunya yang disembunyiin */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

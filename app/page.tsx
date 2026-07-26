@@ -3,6 +3,7 @@ import { CategoryFilter } from "@/components/shared/CategoryFilter";
 import { Hero } from "@/components/home/Hero";
 import { HighlightModules } from "@/components/home/HighlightModules";
 import { createClient } from "@/lib/supabase/server";
+import { CampaignCarouselRow } from "@/components/campaign/CampaignCarouselRow";
 
 // Rencana section (urut dari atas):
 // 1. Hero — SUDAH JADI (components/home/Hero.tsx)
@@ -32,7 +33,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-10">
-    <Hero urgentCampaigns={urgentCampaigns ?? []} />
+      <Hero urgentCampaigns={urgentCampaigns ?? []} />
 
       <section aria-label="kategori">
         <CategoryFilter />
@@ -49,7 +50,7 @@ export default async function HomePage() {
 
       <section aria-label="campaign-terbaru">
         <h2 className="text-xl font-semibold mb-4">Galang Dana Terbaru</h2>
-        <CampaignGrid campaigns={latestCampaigns ?? []} />
+        <CampaignCarouselRow campaigns={latestCampaigns ?? []} />
       </section>
     </div>
   );
