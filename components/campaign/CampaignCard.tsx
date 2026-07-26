@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Campaign } from "@/lib/types";
 import { formatRupiah, calcProgressPercent, daysLeft } from "@/lib/utils";
 import { CampaignProgress } from "./CampaignProgress";
@@ -12,8 +13,10 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
       href={`/donasi/${campaign.slug}`}
       className="block rounded-2xl border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
     >
-      <div className="aspect-video bg-slate-100">
-        {/* TODO: next/image dengan campaign.cover_image_url */}
+      <div className="relative aspect-video bg-gradient-to-br from-primary to-secondary">
+        {campaign.cover_image_url && (
+          <Image src={campaign.cover_image_url} alt={campaign.title} fill className="object-cover" />
+        )}
       </div>
       <div className="p-4 space-y-2">
         <h3 className="font-semibold line-clamp-2">{campaign.title}</h3>
