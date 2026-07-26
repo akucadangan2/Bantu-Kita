@@ -8,7 +8,7 @@ const QUICK_LINKS = [
   { href: "/admin/users", label: "Kelola User" },
   { href: "/admin/zakat", label: "Transaksi Zakat" },
   { href: "/admin/wakaf", label: "Kelola Wakaf" },
-  { href: "/admin/saling-jaga", label: "Saling Jaga" },
+  { href: "/admin/kegiatan", label: "Kegiatan" },
   { href: "/admin/pencairan-dana", label: "Pencairan Dana" },
 ];
 
