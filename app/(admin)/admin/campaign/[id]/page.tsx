@@ -233,7 +233,7 @@ export default async function AdminCampaignDetailPage({
                     <p className="font-medium text-slate-700">
                       {d.is_anonymous ? "Hamba Allah" : d.donor_name}
                     </p>
-                    {d.message && <p className="text-slate-500 truncate">"{d.message}"</p>}
+                      {d.message && <p className="text-slate-500 truncate">&quot;{d.message}&quot;</p>}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     {d.payment_proof_url && (
