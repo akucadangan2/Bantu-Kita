@@ -10,17 +10,25 @@ import { CampaignCarouselRow } from "@/components/campaign/CampaignCarouselRow";
 // 2. Kategori cepat — SUDAH JADI (components/shared/CategoryFilter.tsx)
 // 3. Campaign mendesak — SUDAH JADI, data asli dari Supabase
 // 4. Highlight Zakat/Wakaf/Saling Jaga — SUDAH JADI (components/home/HighlightModules.tsx)
-// 5. Campaign terbaru — SUDAH JADI, data asli dari Supabase
+// 5. Pilihan Bantu Kita — SUDAH JADI, data asli dari Supabase
+// 6. Campaign terbaru — SUDAH JADI, data asli dari Supabase
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [{ data: urgentCampaigns }, { data: latestCampaigns }] = await Promise.all([
+  const [{ data: urgentCampaigns }, { data: featuredCampaigns }, { data: latestCampaigns }] = await Promise.all([
     supabase
       .from("campaigns")
       .select("*")
       .eq("status", "active")
       .eq("is_urgent", true)
+      .order("created_at", { ascending: false })
+      .limit(6),
+    supabase
+      .from("campaigns")
+      .select("*")
+      .eq("status", "active")
+      .eq("is_featured", true)
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
@@ -46,6 +54,11 @@ export default async function HomePage() {
 
       <section aria-label="highlight-modul" className="grid gap-4 sm:grid-cols-3">
         <HighlightModules />
+      </section>
+
+      <section aria-label="pilihan-bantu-kita">
+        <h2 className="text-xl font-semibold mb-4">Pilihan Bantu Kita</h2>
+        <CampaignCarouselRow campaigns={featuredCampaigns ?? []} />
       </section>
 
       <section aria-label="campaign-terbaru">

@@ -37,6 +37,17 @@ async function toggleUrgent(formData: FormData) {
   revalidatePath("/");
 }
 
+async function toggleFeatured(formData: FormData) {
+  "use server";
+  const id = formData.get("id") as string;
+  const current = formData.get("current") as string;
+  const supabase = await createClient();
+  await supabase.from("campaigns").update({ is_featured: current !== "true" }).eq("id", id);
+  revalidatePath(`/admin/campaign/${id}`);
+  revalidatePath("/admin/campaign");
+  revalidatePath("/");
+}
+
 async function verifyDonation(formData: FormData) {
   "use server";
   const donationId = formData.get("donationId") as string;
@@ -121,16 +132,28 @@ export default async function AdminCampaignDetailPage({
             {campaign.is_urgent && (
               <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-white">Mendesak</span>
             )}
+            {campaign.is_featured && (
+              <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-white">Pilihan Bantu Kita</span>
+            )}
           </div>
         </div>
         {campaign.status === "active" && (
-          <form action={toggleUrgent}>
-            <input type="hidden" name="id" value={campaign.id} />
-            <input type="hidden" name="current" value={String(campaign.is_urgent)} />
-            <button className="shrink-0 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50">
-              {campaign.is_urgent ? "Batalkan Mendesak" : "Tandai Mendesak"}
-            </button>
-          </form>
+          <div className="flex gap-2">
+            <form action={toggleUrgent}>
+              <input type="hidden" name="id" value={campaign.id} />
+              <input type="hidden" name="current" value={String(campaign.is_urgent)} />
+              <button className="shrink-0 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50">
+                {campaign.is_urgent ? "Batalkan Mendesak" : "Tandai Mendesak"}
+              </button>
+            </form>
+            <form action={toggleFeatured}>
+              <input type="hidden" name="id" value={campaign.id} />
+              <input type="hidden" name="current" value={String(campaign.is_featured)} />
+              <button className="shrink-0 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50">
+                {campaign.is_featured ? "Batalkan dari Pilihan" : "Tandai Pilihan Bantu Kita"}
+              </button>
+            </form>
+          </div>
         )}
       </div>
 
@@ -210,7 +233,7 @@ export default async function AdminCampaignDetailPage({
                     <p className="font-medium text-slate-700">
                       {d.is_anonymous ? "Hamba Allah" : d.donor_name}
                     </p>
-                    {d.message && <p className="text-slate-500 truncate">&quot;{d.message}&quot;</p>}
+                    {d.message && <p className="text-slate-500 truncate">"{d.message}"</p>}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     {d.payment_proof_url && (

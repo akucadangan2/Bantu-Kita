@@ -1,0 +1,1 @@
+alter table campaigns add column is_featured boolean not null default false;
