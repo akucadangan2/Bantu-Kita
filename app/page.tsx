@@ -1,22 +1,21 @@
+import Link from "next/link";
 import { CampaignGrid } from "@/components/campaign/CampaignGrid";
+import { CampaignCarouselRow } from "@/components/campaign/CampaignCarouselRow";
 import { CategoryFilter } from "@/components/shared/CategoryFilter";
 import { Hero } from "@/components/home/Hero";
 import { HighlightModules } from "@/components/home/HighlightModules";
+import { ActivityCard } from "@/components/kegiatan/ActivityCard";
 import { createClient } from "@/lib/supabase/server";
-import { CampaignCarouselRow } from "@/components/campaign/CampaignCarouselRow";
-
-// Rencana section (urut dari atas):
-// 1. Hero — SUDAH JADI (components/home/Hero.tsx)
-// 2. Kategori cepat — SUDAH JADI (components/shared/CategoryFilter.tsx)
-// 3. Campaign mendesak — SUDAH JADI, data asli dari Supabase
-// 4. Highlight Zakat/Wakaf/Saling Jaga — SUDAH JADI (components/home/HighlightModules.tsx)
-// 5. Pilihan Bantu Kita — SUDAH JADI, data asli dari Supabase
-// 6. Campaign terbaru — SUDAH JADI, data asli dari Supabase
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [{ data: urgentCampaigns }, { data: featuredCampaigns }, { data: latestCampaigns }] = await Promise.all([
+  const [
+    { data: urgentCampaigns },
+    { data: featuredCampaigns },
+    { data: latestCampaigns },
+    { data: activitiesRaw },
+  ] = await Promise.all([
     supabase
       .from("campaigns")
       .select("*")
@@ -37,7 +36,18 @@ export default async function HomePage() {
       .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(6),
+    supabase
+      .from("activities")
+      .select("slug, title, location, activity_date, quota, activity_participants(count)")
+      .eq("status", "active")
+      .order("activity_date", { ascending: true })
+      .limit(3),
   ]);
+
+  const activities = (activitiesRaw ?? []).map((a: any) => ({
+    ...a,
+    joined_count: a.activity_participants?.[0]?.count ?? 0,
+  }));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-10">
@@ -48,7 +58,12 @@ export default async function HomePage() {
       </section>
 
       <section aria-label="campaign-mendesak">
-        <h2 className="text-xl font-semibold mb-4">Butuh Bantuan Segera</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Butuh Bantuan Segera</h2>
+          <Link href="/donasi?filter=mendesak" className="text-sm font-medium text-secondary-dark hover:underline">
+            Lihat Semua
+          </Link>
+        </div>
         <CampaignGrid campaigns={urgentCampaigns ?? []} />
       </section>
 
@@ -57,13 +72,41 @@ export default async function HomePage() {
       </section>
 
       <section aria-label="pilihan-bantu-kita">
-        <h2 className="text-xl font-semibold mb-4">Pilihan Bantu Kita</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Pilihan Bantu Kita</h2>
+          <Link href="/donasi?filter=pilihan" className="text-sm font-medium text-secondary-dark hover:underline">
+            Lihat Semua
+          </Link>
+        </div>
         <CampaignCarouselRow campaigns={featuredCampaigns ?? []} />
       </section>
 
       <section aria-label="campaign-terbaru">
-        <h2 className="text-xl font-semibold mb-4">Galang Dana Terbaru</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Galang Dana Terbaru</h2>
+          <Link href="/donasi" className="text-sm font-medium text-secondary-dark hover:underline">
+            Lihat Semua
+          </Link>
+        </div>
         <CampaignCarouselRow campaigns={latestCampaigns ?? []} />
+      </section>
+
+      <section aria-label="kegiatan-terbaru">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Kegiatan Terbaru</h2>
+          <Link href="/kegiatan" className="text-sm font-medium text-secondary-dark hover:underline">
+            Lihat Semua
+          </Link>
+        </div>
+        {activities.length === 0 ? (
+          <p className="text-sm text-slate-400">Belum ada kegiatan yang tersedia.</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {activities.map((a) => (
+              <ActivityCard key={a.slug} activity={a} />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
