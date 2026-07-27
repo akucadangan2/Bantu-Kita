@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { formatRupiah, calcProgressPercent } from "@/lib/utils";
 
 interface WakafProgramSummary {
@@ -8,6 +9,7 @@ interface WakafProgramSummary {
   unit_label: string;
   total_units: number;
   units_taken: number;
+  cover_image_url?: string | null;
 }
 
 export function WakafCard({ program }: { program: WakafProgramSummary }) {
@@ -19,7 +21,11 @@ export function WakafCard({ program }: { program: WakafProgramSummary }) {
       href={`/wakaf/${program.slug}`}
       className="block rounded-2xl border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
     >
-      <div className="aspect-video bg-gradient-to-br from-primary to-secondary" />
+      <div className="relative aspect-video bg-gradient-to-br from-primary to-secondary">
+        {program.cover_image_url && (
+          <Image src={program.cover_image_url} alt={program.title} fill className="object-cover" />
+        )}
+      </div>
       <div className="p-4 space-y-2">
         <h3 className="font-semibold line-clamp-2">{program.title}</h3>
         <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">

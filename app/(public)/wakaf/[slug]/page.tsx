@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { WakafForm } from "@/components/wakaf/WakafForm";
 import { formatRupiah, calcProgressPercent } from "@/lib/utils";
+import Image from "next/image";
 
 export default async function WakafDetailPage({
   params,
@@ -24,7 +25,11 @@ export default async function WakafDetailPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-3">
       <div className="md:col-span-2 space-y-6">
-        <div className="aspect-video rounded-2xl bg-gradient-to-br from-primary to-secondary" />
+        <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-secondary">
+          {program.cover_image_url && (
+            <Image src={program.cover_image_url} alt={program.title} fill className="object-cover" />
+          )}
+        </div>
         <div>
           <h1 className="text-2xl font-bold text-slate-800">{program.title}</h1>
         </div>

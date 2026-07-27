@@ -6,7 +6,7 @@ export default async function WakafListPage() {
   const supabase = await createClient();
   const { data: programs } = await supabase
     .from("wakaf_programs")
-    .select("slug, title, price_per_unit, unit_label, total_units, units_taken")
+    .select("slug, title, price_per_unit, unit_label, total_units, units_taken, cover_image_url")
     .eq("status", "active")
     .order("created_at", { ascending: false });
 
