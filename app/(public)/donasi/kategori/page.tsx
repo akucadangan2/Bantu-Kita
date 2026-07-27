@@ -45,19 +45,19 @@ export default async function DonasiSemuaKategoriPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="text-2xl font-bold text-primary mb-6">Semua Kategori</h1>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {list.map((cat) => {
           const Icon = CATEGORY_ICONS[cat.slug] ?? Users;
           return (
             <Link
               key={cat.slug}
               href={`/donasi/kategori/${cat.slug}`}
-              className="flex items-center gap-3 rounded-xl border border-slate-100 p-4 hover:border-primary transition-colors"
+              className="flex flex-col items-center gap-2 rounded-2xl border border-slate-100 p-4 text-center hover:border-primary transition-colors"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-light text-secondary-dark">
-                <Icon className="h-5 w-5" />
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-light text-secondary-dark">
+                <Icon className="h-6 w-6" />
               </span>
-              <span className="font-medium text-slate-700">{cat.name}</span>
+              <span className="text-sm font-medium text-slate-700">{cat.name}</span>
             </Link>
           );
         })}
