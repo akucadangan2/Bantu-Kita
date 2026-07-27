@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { WakafCard } from "@/components/wakaf/WakafCard";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -14,11 +15,19 @@ export default async function WakafListPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">Program Wakaf</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Wakaf tunai untuk pembangunan fasilitas umat — mulai dari nominal kecil per unit.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Program Wakaf</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Wakaf tunai untuk pembangunan fasilitas umat — mulai dari nominal kecil per unit.
+          </p>
+        </div>
+        <Link
+          href="/galang-dana/wakaf"
+          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+        >
+          + Ajukan Program Wakaf
+        </Link>
       </div>
 
       {list.length === 0 ? (

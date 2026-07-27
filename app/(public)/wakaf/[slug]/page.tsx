@@ -1,64 +1,140 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { WakafForm } from "@/components/wakaf/WakafForm";
-import { formatRupiah, calcProgressPercent } from "@/lib/utils";
-import Image from "next/image";
+import { revalidatePath } from "next/cache";
+import { Badge } from "@/components/ui/Badge";
 
-export default async function WakafDetailPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+async function updateWakafProgram(formData: FormData) {
+  "use server";
+  const id = formData.get("id") as string;
   const supabase = await createClient();
 
-  const { data: program } = await supabase
-    .from("wakaf_programs")
-    .select("*")
-    .eq("slug", slug)
-    .single();
+  const updateData: Record<string, unknown> = {
+    title: formData.get("title") as string,
+    description: formData.get("description") as string,
+    price_per_unit: Number(formData.get("price_per_unit")),
+    unit_label: formData.get("unit_label") as string,
+    total_units: Number(formData.get("total_units")),
+  };
 
+  const file = formData.get("cover_image") as File | null;
+  if (file && file.size > 0) {
+    const path = `wakaf-${id}-${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage.from("campaign-images").upload(path, file);
+    if (!uploadError) {
+      const { data: urlData } = supabase.storage.from("campaign-images").getPublicUrl(path);
+      updateData.cover_image_url = urlData.publicUrl;
+    }
+  }
+
+  await supabase.from("wakaf_programs").update(updateData).eq("id", id);
+  revalidatePath("/admin/wakaf");
+  revalidatePath("/wakaf");
+  redirect("/admin/wakaf");
+}
+
+async function approveWakafProgram(formData: FormData) {
+  "use server";
+  const id = formData.get("id") as string;
+  const supabase = await createClient();
+  await supabase.from("wakaf_programs").update({ status: "active" }).eq("id", id);
+  revalidatePath("/admin/wakaf");
+  revalidatePath("/wakaf");
+  redirect("/admin/wakaf");
+}
+
+async function rejectWakafProgram(formData: FormData) {
+  "use server";
+  const id = formData.get("id") as string;
+  const supabase = await createClient();
+  await supabase.from("wakaf_programs").update({ status: "rejected" }).eq("id", id);
+  revalidatePath("/admin/wakaf");
+  redirect("/admin/wakaf");
+}
+
+export default async function EditWakafProgramPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: program } = await supabase.from("wakaf_programs").select("*").eq("id", id).single();
   if (!program) notFound();
 
-  const percent = calcProgressPercent(program.units_taken, program.total_units);
-
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-3">
-      <div className="md:col-span-2 space-y-6">
-        <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-secondary">
-          {program.cover_image_url && (
-            <Image src={program.cover_image_url} alt={program.title} fill className="object-cover" />
-          )}
+    <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold text-primary">Edit Program Wakaf</h1>
+        <Badge status={program.status} />
+      </div>
+
+      {program.status === "pending_review" && (
+        <div className="rounded-xl bg-amber-50 p-4">
+          <p className="text-sm text-amber-700 mb-3">
+            Program ini diajukan oleh fundraiser dan menunggu verifikasi. Baca deskripsinya di
+            bawah, lalu setujui atau tolak.
+          </p>
+          <div className="flex gap-2">
+            <form action={approveWakafProgram}>
+              <input type="hidden" name="id" value={program.id} />
+              <button className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-white hover:bg-secondary-dark">
+                Setujui Program
+              </button>
+            </form>
+            <form action={rejectWakafProgram}>
+              <input type="hidden" name="id" value={program.id} />
+              <button className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">
+                Tolak Program
+              </button>
+            </form>
+          </div>
         </div>
+      )}
+
+      <form action={updateWakafProgram} className="space-y-4">
+        <input type="hidden" name="id" value={program.id} />
+
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">{program.title}</h1>
+          <label className="text-sm font-medium text-slate-700">Judul Program</label>
+          <input name="title" required defaultValue={program.title} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2" />
         </div>
-        <div className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-600">
-          {program.description}
-        </div>
-      </div>
 
-      <div className="md:col-span-1">
-        <div className="sticky top-20 rounded-2xl border border-slate-100 p-5 space-y-4">
-          <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-            <div className="h-full bg-secondary transition-all" style={{ width: `${percent}%` }} />
+        <div>
+          <label className="text-sm font-medium text-slate-700">Deskripsi</label>
+          <textarea name="description" rows={4} defaultValue={program.description ?? ""} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-slate-700">Ganti Foto Cover (opsional)</label>
+          <input
+            type="file"
+            name="cover_image"
+            accept="image/*"
+            className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-dark"
+          />
+          {program.cover_image_url && <p className="mt-1 text-xs text-slate-400">Kosongkan kalau nggak mau ganti foto lama.</p>}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label className="text-sm font-medium text-slate-700">Harga per Unit (Rp)</label>
+            <input type="number" name="price_per_unit" required defaultValue={program.price_per_unit} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2" />
           </div>
-          <div className="flex justify-between text-sm">
-            <div>
-              <p className="font-bold text-primary">{program.units_taken} {program.unit_label}</p>
-              <p className="text-slate-500">dari {program.total_units} {program.unit_label}</p>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-primary">{formatRupiah(program.price_per_unit)}</p>
-              <p className="text-slate-500">per {program.unit_label}</p>
-            </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700">Label Unit</label>
+            <input name="unit_label" required defaultValue={program.unit_label} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2" />
           </div>
-
-          <hr className="border-slate-100" />
-
-          <WakafForm program={program} />
+          <div>
+            <label className="text-sm font-medium text-slate-700">Total Unit</label>
+            <input type="number" name="total_units" required defaultValue={program.total_units} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2" />
+          </div>
         </div>
-      </div>
+
+        <button className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark">
+          Simpan Perubahan
+        </button>
+      </form>
     </div>
   );
 }
