@@ -21,6 +21,22 @@ async function createActivity(formData: FormData) {
   revalidatePath("/admin/kegiatan");
 }
 
+async function closeActivity(formData: FormData) {
+  "use server";
+  const id = formData.get("id") as string;
+  const supabase = await createClient();
+  await supabase.from("activities").update({ status: "closed" }).eq("id", id);
+  revalidatePath("/admin/kegiatan");
+}
+
+async function deleteActivity(formData: FormData) {
+  "use server";
+  const id = formData.get("id") as string;
+  const supabase = await createClient();
+  await supabase.from("activities").delete().eq("id", id);
+  revalidatePath("/admin/kegiatan");
+}
+
 export default async function AdminKegiatanPage() {
   const supabase = await createClient();
 
@@ -77,12 +93,31 @@ export default async function AdminKegiatanPage() {
         <ul className="rounded-2xl border border-slate-100 divide-y divide-slate-100">
           {list.length === 0 && <li className="p-6 text-center text-sm text-slate-400">Belum ada kegiatan.</li>}
           {list.map((a) => (
-            <li key={a.id} className="flex items-center justify-between p-4 text-sm">
-              <div>
-                <p className="font-medium text-slate-700">{a.title}</p>
-                <p className="text-slate-500">{a.joined_count}/{a.quota} peserta</p>
+            <li key={a.id} className="p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium text-slate-700">{a.title}</p>
+                  <p className="text-sm text-slate-500">{a.joined_count}/{a.quota} peserta</p>
+                </div>
+                <Badge status={a.status} />
               </div>
-              <Badge status={a.status} />
+
+              <div className="flex gap-2">
+                {a.status === "active" && (
+                  <form action={closeActivity}>
+                    <input type="hidden" name="id" value={a.id} />
+                    <button className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium hover:bg-slate-50">
+                      Tutup Kegiatan
+                    </button>
+                  </form>
+                )}
+                <form action={deleteActivity}>
+                  <input type="hidden" name="id" value={a.id} />
+                  <button className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600">
+                    Hapus
+                  </button>
+                </form>
+              </div>
             </li>
           ))}
         </ul>
