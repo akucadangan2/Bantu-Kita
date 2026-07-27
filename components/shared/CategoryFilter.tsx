@@ -25,7 +25,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 export function CategoryFilter({ activeSlug }: { activeSlug?: string }) {
   return (
     <div className="grid grid-cols-4 sm:grid-cols-8 gap-4">
-      {CAMPAIGN_CATEGORIES.map((cat) => {
+      {CAMPAIGN_CATEGORIES.slice(0, 7).map((cat) => {
         const Icon = CATEGORY_ICONS[cat.slug] ?? Users;
         const isActive = activeSlug === cat.slug;
 

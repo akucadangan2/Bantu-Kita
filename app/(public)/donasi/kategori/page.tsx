@@ -8,6 +8,11 @@ import {
   Leaf,
   Accessibility,
   PawPrint,
+  Baby,
+  HeartHandshake,
+  Building2,
+  Lightbulb,
+  Home,
   type LucideIcon,
 } from "lucide-react";
 
@@ -19,6 +24,12 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   lingkungan: Leaf,
   difabel: Accessibility,
   hewan: PawPrint,
+  "balita-anak-sakit": Baby,
+  "kegiatan-sosial": HeartHandshake,
+  "infrastruktur-umum": Building2,
+  "karya-kreatif-modal-usaha": Lightbulb,
+  "rumah-ibadah": Home,
+  "panti-asuhan": Users,
 };
 
 export default async function DonasiSemuaKategoriPage() {

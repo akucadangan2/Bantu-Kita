@@ -9,6 +9,16 @@ export const CAMPAIGN_CATEGORIES = [
   { slug: "lingkungan", name: "Lingkungan" },
   { slug: "difabel", name: "Difabel" },
   { slug: "hewan", name: "Hewan & Lingkungan" },
+  // 7 di atas tampil sebagai chip cepat di homepage (+ tombol "Lainnya").
+  // 6 di bawah ini otomatis nggak ikut nongol di chip cepat (grid tetap 8 slot),
+  // tapi tetap kepilih di halaman "/donasi/kategori" (Lihat Semua) & dropdown
+  // saat fundraiser bikin campaign baru.
+  { slug: "balita-anak-sakit", name: "Balita & Anak Sakit" },
+  { slug: "kegiatan-sosial", name: "Kegiatan Sosial" },
+  { slug: "infrastruktur-umum", name: "Infrastruktur Umum" },
+  { slug: "karya-kreatif-modal-usaha", name: "Karya Kreatif & Modal Usaha" },
+  { slug: "rumah-ibadah", name: "Rumah Ibadah" },
+  { slug: "panti-asuhan", name: "Panti Asuhan" },
 ] as const;
 
 export const ZAKAT_TYPES = [
