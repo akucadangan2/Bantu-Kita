@@ -14,7 +14,6 @@ export default async function HomePage() {
   const [
     { data: urgentCampaigns },
     { data: featuredCampaigns },
-    { data: latestCampaigns },
     { data: activitiesRaw },
     { data: doaRaw },
   ] = await Promise.all([
@@ -30,12 +29,6 @@ export default async function HomePage() {
       .select("*")
       .eq("status", "active")
       .eq("is_featured", true)
-      .order("created_at", { ascending: false })
-      .limit(6),
-    supabase
-      .from("campaigns")
-      .select("*")
-      .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
@@ -105,16 +98,6 @@ export default async function HomePage() {
           </Link>
         </div>
         <CampaignCarouselRow campaigns={featuredCampaigns ?? []} />
-      </section>
-
-      <section aria-label="campaign-terbaru">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Galang Dana Terbaru</h2>
-          <Link href="/donasi" className="text-sm font-medium text-secondary-dark hover:underline">
-            Lihat Semua
-          </Link>
-        </div>
-        <CampaignCarouselRow campaigns={latestCampaigns ?? []} />
       </section>
 
       <section aria-label="kegiatan-terbaru">
