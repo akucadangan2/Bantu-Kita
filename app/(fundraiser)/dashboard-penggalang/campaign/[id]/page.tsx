@@ -4,17 +4,27 @@ import { createClient } from "@/lib/supabase/server";
 import { CampaignProgress } from "@/components/campaign/CampaignProgress";
 import { Badge } from "@/components/ui/Badge";
 import { formatRupiah, calcProgressPercent } from "@/lib/utils";
-import { revalidatePath } from "next/cache"; // <-- Tambahan import
+import { revalidatePath } from "next/cache";
 
-// Tambahan server action untuk submit kabar terbaru
-async function postUpdate(formData: FormData) {
+async function cancelCampaign(formData: FormData) {
   "use server";
-  const campaignId = formData.get("campaignId") as string;
-  const title = formData.get("title") as string;
-  const content = formData.get("content") as string;
+  const id = formData.get("id") as string;
   const supabase = await createClient();
-  await supabase.from("campaign_updates").insert({ campaign_id: campaignId, title, content });
-  revalidatePath(`/dashboard-penggalang/campaign/${campaignId}`);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // .eq("fundraiser_id", ...) sebagai pengaman tambahan, walau RLS juga udah nge-block
+  // kalau ada yang coba batalin campaign milik orang lain
+  await supabase
+    .from("campaigns")
+    .update({ status: "closed" })
+    .eq("id", id)
+    .eq("fundraiser_id", user!.id);
+
+  revalidatePath(`/dashboard-penggalang/campaign/${id}`);
+  revalidatePath("/dashboard-penggalang");
 }
 
 export default async function DetailCampaignFundraiserPage({
@@ -47,6 +57,7 @@ export default async function DetailCampaignFundraiserPage({
   const list = donations ?? [];
   const pendingCount = list.filter((d) => d.payment_status === "pending").length;
   const percent = calcProgressPercent(campaign.collected_amount, campaign.target_amount);
+  const canCancel = ["pending_review", "active"].includes(campaign.status);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
@@ -81,30 +92,20 @@ export default async function DetailCampaignFundraiserPage({
         </div>
       )}
 
-      {/* --- TAMBAHAN FORM KABAR TERBARU --- */}
-      <div className="rounded-2xl border border-slate-100 p-5">
-        <h2 className="font-semibold text-slate-800 mb-3">Post Kabar Terbaru</h2>
-        <form action={postUpdate} className="space-y-3">
-          <input type="hidden" name="campaignId" value={campaign.id} />
-          <input
-            name="title"
-            required
-            placeholder="Judul kabar"
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-          />
-          <textarea
-            name="content"
-            required
-            rows={3}
-            placeholder="Ceritakan perkembangan terbaru..."
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-          />
-          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
-            Kirim Kabar
-          </button>
-        </form>
-      </div>
-      {/* ------------------------------------- */}
+      {canCancel && (
+        <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+          <p className="text-sm text-red-700 mb-3">
+            Batalkan campaign ini kalau kebutuhannya sudah tidak ada lagi. Campaign akan ditutup
+            dan tidak bisa menerima donasi baru — riwayat donasi yang sudah masuk tetap tersimpan.
+          </p>
+          <form action={cancelCampaign}>
+            <input type="hidden" name="id" value={campaign.id} />
+            <button className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600">
+              Batalkan Campaign
+            </button>
+          </form>
+        </div>
+      )}
 
       <div>
         <h2 className="font-semibold text-slate-800 mb-3">Riwayat Donasi Masuk</h2>
