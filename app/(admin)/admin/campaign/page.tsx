@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/Badge";
+import { ConfirmSubmitButton } from "@/components/ui/ConfirmSubmitButton";
 import { formatRupiah } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+async function deleteCampaign(formData: FormData) {
+  "use server";
+  const id = formData.get("id") as string;
+  const supabase = await createClient();
+  await supabase.from("campaigns").delete().eq("id", id);
+  revalidatePath("/admin/campaign");
+}
 
 export default async function AdminCampaignListPage({
   searchParams,
@@ -66,12 +76,23 @@ export default async function AdminCampaignListPage({
             <p className="text-xs text-slate-500">
               {formatRupiah(c.collected_amount)} dari {formatRupiah(c.target_amount)}
             </p>
-            <Link
-              href={`/admin/campaign/${c.id}`}
-              className="inline-block rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark"
-            >
-              {c.status === "pending_review" ? "Review" : "Lihat Detail"}
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href={`/admin/campaign/${c.id}`}
+                className="inline-block rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark"
+              >
+                {c.status === "pending_review" ? "Review" : "Lihat Detail"}
+              </Link>
+              <form action={deleteCampaign}>
+                <input type="hidden" name="id" value={c.id} />
+                <ConfirmSubmitButton
+                  confirmText={`Hapus permanen campaign "${c.title}"? Semua riwayat donasi yang terkait akan ikut terhapus dan tidak bisa dikembalikan.`}
+                  className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600"
+                >
+                  Hapus
+                </ConfirmSubmitButton>
+              </form>
+            </div>
           </li>
         ))}
       </ul>
