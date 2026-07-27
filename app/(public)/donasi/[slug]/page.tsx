@@ -97,7 +97,7 @@ export default async function DonasiDetailPage({
                 <li key={i} className="flex justify-between text-sm border-b border-slate-100 pb-3">
                   <div>
                     <p className="font-medium text-slate-700">
-                      {d.is_anonymous ? "Hamba Allah" : d.donor_name}
+                      {d.is_anonymous ? "Orang Baik" : d.donor_name}
                     </p>
                     {d.message && <p className="text-slate-500 mt-0.5">&quot;{d.message}&quot;</p>}
                   </div>

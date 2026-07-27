@@ -33,7 +33,7 @@ export function ZakatCalculator({ zakatTypes }: { zakatTypes: ZakatType[] }) {
   const [jiwa, setJiwa] = useState("1");
   const [hargaFitrah, setHargaFitrah] = useState(String(ZAKAT_FITRAH_PRICE_PER_JIWA_ESTIMATE));
 
-  const [muzakkiName, setMuzakkiName] = useState("Hamba Allah");
+  const [muzakkiName, setMuzakkiName] = useState("Orang Baik");
   const [zakatTransactionId, setZakatTransactionId] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -67,7 +67,7 @@ export function ZakatCalculator({ zakatTypes }: { zakatTypes: ZakatType[] }) {
       .insert({
         user_id: user?.id ?? null,
         zakat_type_id: selectedType.id,
-        muzakki_name: muzakkiName || "Hamba Allah",
+        muzakki_name: muzakkiName || "Orang Baik",
         amount: hasil,
         payment_status: "pending",
       })

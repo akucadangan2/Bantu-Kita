@@ -19,7 +19,7 @@ export function WakafForm({ program }: { program: WakafProgramDetail }) {
   const supabase = createClient();
   const [step, setStep] = useState<Step>("form");
   const [units, setUnits] = useState("1");
-  const [wakifName, setWakifName] = useState("Hamba Allah");
+  const [wakifName, setWakifName] = useState("Orang Baik");
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +44,7 @@ export function WakafForm({ program }: { program: WakafProgramDetail }) {
       .insert({
         program_id: program.id,
         user_id: user?.id ?? null,
-        wakif_name: wakifName || "Hamba Allah",
+        wakif_name: wakifName || "Orang Baik",
         units: unitsNum,
         amount: total,
         payment_status: "pending",

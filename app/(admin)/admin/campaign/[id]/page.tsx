@@ -230,9 +230,9 @@ export default async function AdminCampaignDetailPage({
               {list.map((d) => (
                 <li key={d.id} className="flex items-center justify-between gap-4 p-4 text-sm">
                   <div className="min-w-0">
-                    <p className="font-medium text-slate-700">
-                      {d.is_anonymous ? "Hamba Allah" : d.donor_name}
-                    </p>
+                  <p className="font-medium text-slate-700">
+                    {d.is_anonymous ? "Orang Baik" : d.donor_name}
+                  </p>
                       {d.message && <p className="text-slate-500 truncate">&quot;{d.message}&quot;</p>}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">

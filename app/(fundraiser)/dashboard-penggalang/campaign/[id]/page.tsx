@@ -116,7 +116,7 @@ export default async function DetailCampaignFundraiserPage({
             {list.map((d, i) => (
               <li key={i} className="flex items-center justify-between p-4 text-sm">
                 <span className="font-medium text-slate-700">
-                  {d.is_anonymous ? "Hamba Allah" : d.donor_name}
+                  {d.is_anonymous ? "Orang Baik" : d.donor_name}
                 </span>
                 <div className="flex items-center gap-3">
                   <span className="text-slate-500">

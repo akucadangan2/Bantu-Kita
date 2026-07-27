@@ -25,7 +25,7 @@ export function DonationForm({ campaignId }: { campaignId: string }) {
     formState: { errors, isSubmitting },
   } = useForm<CreateDonationInput>({
     resolver: zodResolver(createDonationSchema),
-    defaultValues: { campaignId, donorName: "Hamba Allah", isAnonymous: false },
+    defaultValues: { campaignId, donorName: "Orang Baik", isAnonymous: false },
   });
 
   const onSubmit = async (data: CreateDonationInput) => {
@@ -40,7 +40,7 @@ export function DonationForm({ campaignId }: { campaignId: string }) {
       .insert({
         campaign_id: data.campaignId,
         donor_id: user?.id ?? null,
-        donor_name: data.isAnonymous ? "Hamba Allah" : data.donorName,
+        donor_name: data.isAnonymous ? "Orang Baik" : data.donorName,
         is_anonymous: data.isAnonymous,
         amount: data.amount,
         message: data.message || null,
