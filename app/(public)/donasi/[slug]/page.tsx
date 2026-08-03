@@ -1,12 +1,20 @@
 import { notFound } from "next/navigation";
-import { ShareButtons } from "@/components/campaign/ShareButtons"; // <-- Tambahan import
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { CampaignProgress } from "@/components/campaign/CampaignProgress";
 import { DonationForm } from "@/components/campaign/DonationForm";
-import { formatRupiah, calcProgressPercent, daysLeft } from "@/lib/utils";
-import Image from "next/image";
+import { ShareButtons } from "@/components/campaign/ShareButtons";
 import { UpdateFeed } from "@/components/campaign/UpdateFeed";
 import { CommentSection } from "@/components/campaign/CommentSection";
+import { formatRupiah, calcProgressPercent, daysLeft } from "@/lib/utils";
+
+function CountBadge({ count }: { count: number }) {
+  return (
+    <span className="rounded-full bg-secondary-light px-2 py-0.5 text-xs font-semibold text-secondary-dark">
+      {count}
+    </span>
+  );
+}
 
 export default async function DonasiDetailPage({
   params,
@@ -24,25 +32,45 @@ export default async function DonasiDetailPage({
 
   if (!campaign) notFound();
 
-  const { data: donors } = await supabase
-    .from("donations")
-    .select("donor_name, amount, message, is_anonymous, created_at")
-    .eq("campaign_id", campaign.id)
-    .eq("payment_status", "paid")
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  const { data: updates } = await supabase
-    .from("campaign_updates")
-    .select("id, title, content, created_at")
-    .eq("campaign_id", campaign.id)
-    .order("created_at", { ascending: false });
-
-  const { data: rawComments } = await supabase
-    .from("campaign_comments")
-    .select("id, content, profiles(full_name)")
-    .eq("campaign_id", campaign.id)
-    .order("created_at", { ascending: false });
+  const [
+    { data: donors },
+    { count: totalDonorCount },
+    { data: updates },
+    { data: rawComments },
+    { data: disbursements },
+    {
+      data: { user: currentUser },
+    },
+  ] = await Promise.all([
+    supabase
+      .from("donations")
+      .select("donor_name, amount, message, is_anonymous, created_at")
+      .eq("campaign_id", campaign.id)
+      .eq("payment_status", "paid")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase
+      .from("donations")
+      .select("*", { count: "exact", head: true })
+      .eq("campaign_id", campaign.id)
+      .eq("payment_status", "paid"),
+    supabase
+      .from("campaign_updates")
+      .select("id, title, content, created_at")
+      .eq("campaign_id", campaign.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("campaign_comments")
+      .select("id, content, profiles(full_name)")
+      .eq("campaign_id", campaign.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("public_campaign_disbursements")
+      .select("id, amount, processed_at")
+      .eq("campaign_id", campaign.id)
+      .order("processed_at", { ascending: false }),
+    supabase.auth.getUser(),
+  ]);
 
   const comments = (rawComments ?? []).map((c: any) => ({
     id: c.id,
@@ -50,12 +78,10 @@ export default async function DonasiDetailPage({
     author_name: c.profiles?.full_name ?? "Pengguna",
   }));
 
-  const {
-    data: { user: currentUser },
-  } = await supabase.auth.getUser();
-
   const percent = calcProgressPercent(campaign.collected_amount, campaign.target_amount);
   const sisaHari = daysLeft(campaign.deadline);
+  const disbursementList = disbursements ?? [];
+  const totalDisbursed = disbursementList.reduce((sum, d) => sum + d.amount, 0);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-3">
@@ -81,16 +107,53 @@ export default async function DonasiDetailPage({
           )}
         </div>
 
-        {/* --- TAMBAHAN TOMBOL SHARE --- */}
         <ShareButtons title={campaign.title} slug={campaign.slug} />
-        {/* ----------------------------- */}
 
         <div className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-600">
           {campaign.story}
         </div>
 
         <div>
-          <h2 className="font-semibold text-slate-800 mb-3">Donatur Terbaru</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="font-semibold text-slate-800">Kabar Terbaru</h2>
+            <CountBadge count={updates?.length ?? 0} />
+          </div>
+          <UpdateFeed updates={updates ?? []} />
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="font-semibold text-slate-800">Riwayat Pencairan Dana</h2>
+            <CountBadge count={disbursementList.length} />
+          </div>
+          {disbursementList.length === 0 ? (
+            <p className="text-sm text-slate-400">Belum ada dana yang dicairkan.</p>
+          ) : (
+            <>
+              <p className="text-xs text-slate-500 mb-3">
+                Total {formatRupiah(totalDisbursed)} sudah dicairkan ke penggalang dana, untuk transparansi.
+              </p>
+              <ul className="rounded-2xl border border-slate-100 divide-y divide-slate-100">
+                {disbursementList.map((d) => (
+                  <li key={d.id} className="flex items-center justify-between p-4 text-sm">
+                    <span className="text-slate-500">
+                      {d.processed_at
+                        ? new Date(d.processed_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+                        : "-"}
+                    </span>
+                    <span className="font-semibold text-secondary-dark">{formatRupiah(d.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="font-semibold text-slate-800">Donatur Terbaru</h2>
+            <CountBadge count={totalDonorCount ?? 0} />
+          </div>
           {donors && donors.length > 0 ? (
             <ul className="space-y-3">
               {donors.map((d, i) => (
@@ -110,19 +173,15 @@ export default async function DonasiDetailPage({
           ) : (
             <p className="text-sm text-slate-400">Belum ada donatur terverifikasi.</p>
           )}
-        </div>
-
-        {/* --- TAMBAHAN KABAR TERBARU & KOMENTAR --- */}
-        <div>
-          <h2 className="font-semibold text-slate-800 mb-3">Kabar Terbaru</h2>
-          <UpdateFeed updates={updates ?? []} />
+          {(totalDonorCount ?? 0) > 10 && (
+            <p className="text-xs text-slate-400 mt-2">Menampilkan 10 donatur terbaru dari total {totalDonorCount}.</p>
+          )}
         </div>
 
         <div>
           <h2 className="font-semibold text-slate-800 mb-3">Komentar & Dukungan</h2>
           <CommentSection campaignId={campaign.id} comments={comments} isLoggedIn={!!currentUser} />
         </div>
-        {/* ------------------------------------------- */}
       </div>
 
       {/* Sidebar donasi */}
