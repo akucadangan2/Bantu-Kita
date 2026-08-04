@@ -6,15 +6,8 @@ import { DonationForm } from "@/components/campaign/DonationForm";
 import { ShareButtons } from "@/components/campaign/ShareButtons";
 import { UpdateFeed } from "@/components/campaign/UpdateFeed";
 import { CommentSection } from "@/components/campaign/CommentSection";
+import { CampaignQuickMenu } from "@/components/campaign/CampaignQuickMenu";
 import { formatRupiah, calcProgressPercent, daysLeft } from "@/lib/utils";
-
-function CountBadge({ count }: { count: number }) {
-  return (
-    <span className="rounded-full bg-secondary-light px-2 py-0.5 text-xs font-semibold text-secondary-dark">
-      {count}
-    </span>
-  );
-}
 
 export default async function DonasiDetailPage({
   params,
@@ -24,12 +17,7 @@ export default async function DonasiDetailPage({
   const { slug } = await params;
   const supabase = await createClient();
 
-  const { data: campaign } = await supabase
-    .from("campaigns")
-    .select("*")
-    .eq("slug", slug)
-    .single();
-
+  const { data: campaign } = await supabase.from("campaigns").select("*").eq("slug", slug).single();
   if (!campaign) notFound();
 
   const [
@@ -47,8 +35,7 @@ export default async function DonasiDetailPage({
       .select("donor_name, amount, message, is_anonymous, created_at")
       .eq("campaign_id", campaign.id)
       .eq("payment_status", "paid")
-      .order("created_at", { ascending: false })
-      .limit(10),
+      .order("created_at", { ascending: false }),
     supabase
       .from("donations")
       .select("*", { count: "exact", head: true })
@@ -81,11 +68,11 @@ export default async function DonasiDetailPage({
   const percent = calcProgressPercent(campaign.collected_amount, campaign.target_amount);
   const sisaHari = daysLeft(campaign.deadline);
   const disbursementList = disbursements ?? [];
+  const donorList = donors ?? [];
   const totalDisbursed = disbursementList.reduce((sum, d) => sum + d.amount, 0);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-3">
-      {/* Kolom utama */}
       <div className="md:col-span-2 space-y-6">
         <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-secondary">
           {campaign.cover_image_url && (
@@ -113,29 +100,25 @@ export default async function DonasiDetailPage({
           {campaign.story}
         </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="font-semibold text-slate-800">Kabar Terbaru</h2>
-            <CountBadge count={updates?.length ?? 0} />
-          </div>
+        <CampaignQuickMenu
+          items={[
+            { id: "kabar", label: "Kabar Terbaru", count: updates?.length ?? 0 },
+            { id: "pencairan", label: "Pencairan Dana", count: disbursementList.length },
+            { id: "donatur", label: "Donatur", count: totalDonorCount ?? 0 },
+          ]}
+        >
           <UpdateFeed updates={updates ?? []} />
-        </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="font-semibold text-slate-800">Riwayat Pencairan Dana</h2>
-            <CountBadge count={disbursementList.length} />
-          </div>
           {disbursementList.length === 0 ? (
             <p className="text-sm text-slate-400">Belum ada dana yang dicairkan.</p>
           ) : (
-            <>
-              <p className="text-xs text-slate-500 mb-3">
-                Total {formatRupiah(totalDisbursed)} sudah dicairkan ke penggalang dana, untuk transparansi.
+            <div className="space-y-3">
+              <p className="text-xs text-slate-500">
+                Total {formatRupiah(totalDisbursed)} sudah dicairkan ke penggalang dana.
               </p>
-              <ul className="rounded-2xl border border-slate-100 divide-y divide-slate-100">
+              <ul className="space-y-2">
                 {disbursementList.map((d) => (
-                  <li key={d.id} className="flex items-center justify-between p-4 text-sm">
+                  <li key={d.id} className="flex items-center justify-between text-sm">
                     <span className="text-slate-500">
                       {d.processed_at
                         ? new Date(d.processed_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
@@ -145,38 +128,25 @@ export default async function DonasiDetailPage({
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
-        </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="font-semibold text-slate-800">Donatur Terbaru</h2>
-            <CountBadge count={totalDonorCount ?? 0} />
-          </div>
-          {donors && donors.length > 0 ? (
+          {donorList.length === 0 ? (
+            <p className="text-sm text-slate-400">Belum ada donatur terverifikasi.</p>
+          ) : (
             <ul className="space-y-3">
-              {donors.map((d, i) => (
-                <li key={i} className="flex justify-between text-sm border-b border-slate-100 pb-3">
+              {donorList.map((d, i) => (
+                <li key={i} className="flex justify-between text-sm border-b border-slate-100 pb-3 last:border-0">
                   <div>
-                    <p className="font-medium text-slate-700">
-                      {d.is_anonymous ? "Orang Baik" : d.donor_name}
-                    </p>
+                    <p className="font-medium text-slate-700">{d.is_anonymous ? "Orang Baik" : d.donor_name}</p>
                     {d.message && <p className="text-slate-500 mt-0.5">&quot;{d.message}&quot;</p>}
                   </div>
-                  <span className="font-semibold text-secondary-dark whitespace-nowrap">
-                    {formatRupiah(d.amount)}
-                  </span>
+                  <span className="font-semibold text-secondary-dark whitespace-nowrap">{formatRupiah(d.amount)}</span>
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className="text-sm text-slate-400">Belum ada donatur terverifikasi.</p>
           )}
-          {(totalDonorCount ?? 0) > 10 && (
-            <p className="text-xs text-slate-400 mt-2">Menampilkan 10 donatur terbaru dari total {totalDonorCount}.</p>
-          )}
-        </div>
+        </CampaignQuickMenu>
 
         <div>
           <h2 className="font-semibold text-slate-800 mb-3">Komentar & Dukungan</h2>
@@ -184,7 +154,6 @@ export default async function DonasiDetailPage({
         </div>
       </div>
 
-      {/* Sidebar donasi */}
       <div className="md:col-span-1">
         <div className="sticky top-20 rounded-2xl border border-slate-100 p-5 space-y-4">
           <CampaignProgress percent={percent} />
@@ -200,9 +169,7 @@ export default async function DonasiDetailPage({
               </div>
             )}
           </div>
-
           <hr className="border-slate-100" />
-
           <DonationForm campaignId={campaign.id} />
         </div>
       </div>
