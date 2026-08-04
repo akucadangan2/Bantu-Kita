@@ -7,6 +7,7 @@ interface AccordionItem {
   id: string;
   label: string;
   count: number;
+  subtitle?: string;
 }
 
 export function CampaignQuickMenu({
@@ -14,7 +15,7 @@ export function CampaignQuickMenu({
   children,
 }: {
   items: AccordionItem[];
-  children: React.ReactNode[]; // urutannya harus sama kayak items
+  children: React.ReactNode[];
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -28,11 +29,14 @@ export function CampaignQuickMenu({
               onClick={() => setOpenId(isOpen ? null : item.id)}
               className="w-full flex items-center justify-between gap-3 p-4 hover:bg-slate-50 transition-colors text-left"
             >
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-800">{item.label}</span>
-                <span className="rounded-full bg-secondary-light px-2 py-0.5 text-xs font-semibold text-secondary-dark">
-                  {item.count}
-                </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-slate-800">{item.label}</span>
+                  <span className="rounded-full bg-secondary-light px-2 py-0.5 text-xs font-semibold text-secondary-dark">
+                    {item.count}
+                  </span>
+                </div>
+                {item.subtitle && <p className="text-xs text-slate-400 mt-0.5">{item.subtitle}</p>}
               </div>
               {isOpen ? (
                 <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />

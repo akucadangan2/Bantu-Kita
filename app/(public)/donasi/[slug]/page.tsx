@@ -102,8 +102,22 @@ export default async function DonasiDetailPage({
 
         <CampaignQuickMenu
           items={[
-            { id: "kabar", label: "Kabar Terbaru", count: updates?.length ?? 0 },
-            { id: "pencairan", label: "Pencairan Dana", count: disbursementList.length },
+            {
+              id: "kabar",
+              label: "Kabar Terbaru",
+              count: updates?.length ?? 0,
+              subtitle: updates?.[0]
+                ? `Terakhir update • ${new Date(updates[0].created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`
+                : undefined,
+            },
+            {
+              id: "pencairan",
+              label: "Pencairan Dana",
+              count: disbursementList.length,
+              subtitle: disbursementList[0]?.processed_at
+                ? `Terakhir pencairan dana • ${new Date(disbursementList[0].processed_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`
+                : undefined,
+            },
             { id: "donatur", label: "Donatur", count: totalDonorCount ?? 0 },
           ]}
         >
