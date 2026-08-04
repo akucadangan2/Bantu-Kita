@@ -48,7 +48,7 @@ export default async function AdminDashboardPage() {
           href="/admin/campaign"
           className="block rounded-xl bg-amber-50 p-4 text-sm text-amber-700 hover:bg-amber-100 transition-colors"
         >
-          Ada {pendingCampaigns} campaign menunggu verifikasi kamu →
+          Ada {pendingCampaigns} campaign menunggu verifikasi admin→
         </Link>
       )}
 
