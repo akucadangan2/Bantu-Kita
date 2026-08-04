@@ -65,6 +65,16 @@ async function verifyAllDonations(formData: FormData) {
   revalidatePath(`/admin/campaign/${campaignId}`);
 }
 
+async function postUpdate(formData: FormData) {
+  "use server";
+  const campaignId = formData.get("campaignId") as string;
+  const title = formData.get("title") as string;
+  const content = formData.get("content") as string;
+  const supabase = await createClient();
+  await supabase.from("campaign_updates").insert({ campaign_id: campaignId, title, content });
+  revalidatePath(`/admin/campaign/${campaignId}`);
+}
+
 export default async function AdminCampaignDetailPage({
   params,
   searchParams,
@@ -89,7 +99,7 @@ export default async function AdminCampaignDetailPage({
 
   if (!campaign) notFound();
 
-  const [{ data: donations, count: totalCount }, { count: pendingCount }] = await Promise.all([
+  const [{ data: donations, count: totalCount }, { count: pendingCount }, { data: updates }] = await Promise.all([
     supabase
       .from("donations")
       .select("id, donor_name, amount, is_anonymous, payment_status, message, payment_proof_url, created_at", { count: "exact" })
@@ -101,6 +111,11 @@ export default async function AdminCampaignDetailPage({
       .select("*", { count: "exact", head: true })
       .eq("campaign_id", id)
       .eq("payment_status", "pending"),
+    supabase
+      .from("campaign_updates")
+      .select("id, title, content, created_at")
+      .eq("campaign_id", id)
+      .order("created_at", { ascending: false }),
   ]);
 
   const list = donations ?? [];
@@ -200,6 +215,42 @@ export default async function AdminCampaignDetailPage({
           </div>
         </div>
       )}
+
+      <div className="rounded-2xl border border-slate-100 p-5">
+        <h2 className="font-semibold text-slate-800 mb-3">Post Kabar Terbaru</h2>
+        <form action={postUpdate} className="space-y-3">
+          <input type="hidden" name="campaignId" value={campaign.id} />
+          <input
+            name="title"
+            required
+            placeholder="Judul kabar"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          />
+          <textarea
+            name="content"
+            required
+            rows={3}
+            placeholder="Ceritakan perkembangan terbaru..."
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          />
+          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
+            Kirim Kabar
+          </button>
+        </form>
+
+        {updates && updates.length > 0 && (
+          <ul className="mt-4 space-y-2 border-t border-slate-100 pt-4">
+            {updates.map((u) => (
+              <li key={u.id} className="text-sm">
+                <p className="font-medium text-slate-700">{u.title}</p>
+                <p className="text-xs text-slate-400">
+                  {new Date(u.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div className="rounded-2xl border border-slate-100 p-5 space-y-3">
         <CampaignProgress percent={percent} />
