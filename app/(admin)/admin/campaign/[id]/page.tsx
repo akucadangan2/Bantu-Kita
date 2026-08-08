@@ -71,7 +71,19 @@ async function postUpdate(formData: FormData) {
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
   const supabase = await createClient();
-  await supabase.from("campaign_updates").insert({ campaign_id: campaignId, title, content });
+
+  let imageUrl: string | null = null;
+  const file = formData.get("image") as File | null;
+  if (file && file.size > 0) {
+    const path = `update-${campaignId}-${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage.from("campaign-images").upload(path, file);
+    if (!uploadError) {
+      const { data: urlData } = supabase.storage.from("campaign-images").getPublicUrl(path);
+      imageUrl = urlData.publicUrl;
+    }
+  }
+
+  await supabase.from("campaign_updates").insert({ campaign_id: campaignId, title, content, image_url: imageUrl });
   revalidatePath(`/admin/campaign/${campaignId}`);
 }
 
@@ -113,7 +125,7 @@ export default async function AdminCampaignDetailPage({
       .eq("payment_status", "pending"),
     supabase
       .from("campaign_updates")
-      .select("id, title, content, created_at")
+      .select("id, title, content, image_url, created_at")
       .eq("campaign_id", id)
       .order("created_at", { ascending: false }),
   ]);
@@ -232,6 +244,12 @@ export default async function AdminCampaignDetailPage({
             rows={3}
             placeholder="Ceritakan perkembangan terbaru..."
             className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          />
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-primary-dark"
           />
           <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
             Kirim Kabar

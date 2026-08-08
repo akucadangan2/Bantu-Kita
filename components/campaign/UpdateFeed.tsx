@@ -1,7 +1,10 @@
+import Image from "next/image";
+
 interface UpdateItem {
   id: string;
   title: string;
   content: string;
+  image_url?: string | null;
   created_at: string;
 }
 
@@ -14,6 +17,11 @@ export function UpdateFeed({ updates }: { updates: UpdateItem[] }) {
     <ul className="space-y-4">
       {updates.map((u) => (
         <li key={u.id} className="rounded-xl border border-slate-100 p-4">
+          {u.image_url && (
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-3">
+              <Image src={u.image_url} alt={u.title} fill className="object-cover" />
+            </div>
+          )}
           <p className="font-semibold text-slate-800">{u.title}</p>
           <p className="mt-1 text-sm text-slate-600 whitespace-pre-wrap">{u.content}</p>
           <p className="mt-2 text-xs text-slate-400">

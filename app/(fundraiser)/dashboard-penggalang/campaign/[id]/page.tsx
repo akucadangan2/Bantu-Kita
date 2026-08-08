@@ -27,6 +27,33 @@ async function cancelCampaign(formData: FormData) {
   revalidatePath("/dashboard-penggalang");
 }
 
+async function postUpdate(formData: FormData) {
+  "use server";
+  const campaignId = formData.get("campaignId") as string;
+  const title = formData.get("title") as string;
+  const content = formData.get("content") as string;
+  const supabase = await createClient();
+
+  let imageUrl: string | null = null;
+  const file = formData.get("image") as File | null;
+  if (file && file.size > 0) {
+    const path = `update-${campaignId}-${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage.from("campaign-images").upload(path, file);
+    if (!uploadError) {
+      const { data: urlData } = supabase.storage.from("campaign-images").getPublicUrl(path);
+      imageUrl = urlData.publicUrl;
+    }
+  }
+
+  await supabase.from("campaign_updates").insert({ 
+    campaign_id: campaignId, 
+    title, 
+    content, 
+    image_url: imageUrl 
+  });
+  revalidatePath(`/dashboard-penggalang/campaign/${campaignId}`);
+}
+
 export default async function DetailCampaignFundraiserPage({
   params,
 }: {
@@ -48,11 +75,19 @@ export default async function DetailCampaignFundraiserPage({
 
   if (!campaign) notFound();
 
-  const { data: donations } = await supabase
-    .from("donations")
-    .select("donor_name, amount, is_anonymous, payment_status, created_at")
-    .eq("campaign_id", campaign.id)
-    .order("created_at", { ascending: false });
+  // Fetch donasi dan update secara paralel
+  const [{ data: donations }, { data: updates }] = await Promise.all([
+    supabase
+      .from("donations")
+      .select("donor_name, amount, is_anonymous, payment_status, created_at")
+      .eq("campaign_id", campaign.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("campaign_updates")
+      .select("id, title, content, image_url, created_at")
+      .eq("campaign_id", campaign.id)
+      .order("created_at", { ascending: false })
+  ]);
 
   const list = donations ?? [];
   const pendingCount = list.filter((d) => d.payment_status === "pending").length;
@@ -84,6 +119,53 @@ export default async function DetailCampaignFundraiserPage({
           <span>{formatRupiah(campaign.collected_amount)} terkumpul</span>
           <span>Target {formatRupiah(campaign.target_amount)}</span>
         </div>
+      </div>
+
+      {/* Bagian Post Kabar Terbaru */}
+      <div className="rounded-2xl border border-slate-100 p-5">
+        <h2 className="font-semibold text-slate-800 mb-3">Post Kabar Terbaru</h2>
+        <form action={postUpdate} className="space-y-3">
+          <input type="hidden" name="campaignId" value={campaign.id} />
+          <input
+            name="title"
+            required
+            placeholder="Judul kabar"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          />
+          <textarea
+            name="content"
+            required
+            rows={3}
+            placeholder="Ceritakan perkembangan terbaru..."
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          />
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-primary-dark"
+          />
+          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
+            Kirim Kabar
+          </button>
+        </form>
+
+        {updates && updates.length > 0 && (
+          <ul className="mt-4 space-y-4 border-t border-slate-100 pt-4">
+            {updates.map((u) => (
+              <li key={u.id} className="text-sm">
+                <p className="font-medium text-slate-700">{u.title}</p>
+                <p className="text-xs text-slate-400 mb-2">
+                  {new Date(u.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                </p>
+                {u.image_url && (
+                  <img src={u.image_url} alt={u.title} className="mb-2 max-h-48 rounded-lg object-cover border border-slate-100" />
+                )}
+                <p className="text-slate-600 whitespace-pre-wrap">{u.content}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {pendingCount > 0 && (

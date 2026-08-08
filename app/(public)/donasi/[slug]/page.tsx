@@ -43,7 +43,7 @@ export default async function DonasiDetailPage({
       .eq("payment_status", "paid"),
     supabase
       .from("campaign_updates")
-      .select("id, title, content, created_at")
+      .select("id, title, content, image_url, created_at")
       .eq("campaign_id", campaign.id)
       .order("created_at", { ascending: false }),
     supabase
